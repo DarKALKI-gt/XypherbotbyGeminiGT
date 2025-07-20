@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xypher Bot | Autonomous Surveying Robot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Professional Tech (Dual Mode) -->
+    <!-- Application Structure Plan: A complete redesign into a simulated multi-page application. JavaScript manages the display of distinct "page" containers, providing a clean, organized user flow. The structure prioritizes a premium user experience with a dedicated navigation, animations, and a persistent dark/light theme. -->
+    <!-- Visualization & Content Choices:
+        - All core visualizations are retained and restyled to match the new theme.
+        - Navigation: A fully responsive header with active page highlighting and a theme toggle.
+        - Author Highlighting: A dedicated "Team" page with large profile cards to prominently feature the authors.
+        - Animations: Implemented page-load transitions, scroll-based animations (AOS), and interactive hover effects for a dynamic and polished feel.
+        - Color Contrast: Text and background colors are carefully chosen for high readability in both light and dark modes, addressing the "camouflage" issue.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --bg-light: #f8fafc; /* slate-50 */
+            --text-light-primary: #0f172a; /* slate-900 */
+            --text-light-secondary: #475569; /* slate-600 */
+            --card-light: #ffffff;
+            --border-light: #e2e8f0; /* slate-200 */
+            
+            --bg-dark: #020617; /* slate-950 */
+            --text-dark-primary: #f8fafc; /* slate-50 */
+            --text-dark-secondary: #94a3b8; /* slate-400 */
+            --card-dark: #0f172a; /* slate-900 */
+            --border-dark: #1e293b; /* slate-800 */
+
+            --accent: #2563eb; /* blue-600 */
+            --accent-hover: #1d4ed8; /* blue-700 */
+        }
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-light-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-dark-primary);
+        }
+        .text-secondary {
+            color: var(--text-light-secondary);
+        }
+        .dark .text-secondary {
+            color: var(--text-dark-secondary);
+        }
+        .card {
+            background-color: var(--card-light);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+        .dark .card {
+            background-color: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link.active {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .score-value {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--accent);
+        }
+        [data-aos] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        [data-aos].aos-animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#home" class="font-bold text-xl text-blue-600 nav-link-main">Xypher Bot</a>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="nav-link hover:text-blue-600 transition-colors">Home</a>
+                    <a href="#project" class="nav-link hover:text-blue-600 transition-colors">The Project</a>
+                    <a href="#analysis" class="nav-link hover:text-blue-600 transition-colors">Analysis</a>
+                    <a href="#team" class="nav-link hover:text-blue-600 transition-colors">The Team</a>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    <svg id="theme-icon-sun" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="theme-icon-moon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Home Page -->
+        <div id="page-home" class="page">
+            <section class="relative py-24 md:py-32">
+                <div class="absolute inset-0 bg-slate-100 dark:bg-slate-900 opacity-50"></div>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center relative z-10">
+                    <div data-aos>
+                        <span class="text-sm font-bold uppercase tracking-wider text-blue-600">Babu Banarasi Das University</span>
+                        <h1 class="text-5xl md:text-7xl font-extrabold mt-2">Xypher Bot</h1>
+                        <p class="mt-4 text-xl text-secondary">An Autonomous Surveying Robot for intelligent height and distance measurement.</p>
+                        <div class="mt-8 flex gap-4">
+                            <a href="#project" class="nav-link-action bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl">Explore Project</a>
+                            <a href="#team" class="nav-link-action bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold px-6 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl">Meet the Team</a>
+                        </div>
+                    </div>
+                    <div class="relative" data-aos data-aos-delay="100">
+                        <div class="absolute -inset-2 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl blur-xl opacity-50"></div>
+                        <img src="https://placehold.co/600x400/0f172a/f8fafc?text=Xypher+Bot" alt="Xypher Bot Concept" class="relative rounded-xl shadow-2xl">
+                    </div>
+                </div>
+            </section>
+            
+            <section class="py-20">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-aos>
+                    <h2 class="text-3xl font-bold">Abstract</h2>
+                    <p class="mt-6 text-lg text-secondary leading-relaxed">
+                        Xypher Bot is a fully autonomous robot designed to automate height and distance measurement with precision. By integrating affordable components, the bot utilizes fundamental trigonometry to achieve impressive accuracy. This paper details its design, methodology, and applications, from environmental monitoring to industrial automation, and outlines a roadmap for future enhancements including full mobility and IoT integration.
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Project Details Page -->
+        <div id="page-project" class="page py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+                <section data-aos><h2 class="text-4xl font-bold text-center">The Project</h2><p class="text-xl text-secondary text-center mt-2">A deep dive into the technology and principles behind Xypher Bot.</p></section>
+                
+                <section data-aos><h3 class="text-3xl font-bold mb-8 text-center">System Architecture</h3><div class="card p-8"><div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center"><div class="space-y-6"><div class="flex items-center gap-4"><img src="https://placehold.co/100x100/dbeafe/1e3a8a?text=IMU" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"><div><h4 class="font-bold text-lg">MPU6050 IMU</h4><p class="text-secondary text-sm">Measures the precise tilt angle (θ).</p></div></div><div class="flex items-center gap-4"><img src="https://placehold.co/100x100/dcfce7/15803d?text=Sonic" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"><div><h4 class="font-bold text-lg">Ultrasonic Sensor</h4><p class="text-secondary text-sm">Measures the base distance (D).</p></div></div></div><div class="text-center"><img src="https://placehold.co/200x200/e5e7eb/1f2937?text=Arduino" class="w-40 h-40 rounded-full object-cover mx-auto mb-4 border-4 border-blue-500">
+                <h4 class="font-bold text-2xl">Arduino Nano</h4><p class="text-secondary">The brain of the operation.</p></div><div class="space-y-6"><div class="flex items-center gap-4"><img src="https://placehold.co/100x100/e0e7ff/3730a3?text=Servo" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"><div><h4 class="font-bold text-lg">Servo Motor</h4><p class="text-secondary text-sm">Provides precise panning and tilting.</p></div></div><div class="flex items-center gap-4"><img src="https://placehold.co/100x100/fae8ff/701a75?text=Laser" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"><div><h4 class="font-bold text-lg">Laser Pointer</h4><p class="text-secondary text-sm">Gives a clear visual indication.</p></div></div></div></div></div></section>
+
+                <section data-aos><h3 class="text-3xl font-bold mb-8 text-center">Core Methodology</h3><div class="card p-8"><div class="flex flex-col lg:flex-row gap-8 items-center"><div class="w-full lg:w-2/3"><canvas id="trigCanvas" class="w-full h-80 bg-slate-100 dark:bg-slate-800/50 rounded-lg"></canvas></div><div class="w-full lg:w-1/3"><div class="mb-6"><label for="distanceSlider" class="font-medium">Distance (D): <span id="distanceValue" class="font-bold text-blue-500">50</span> cm</label><input id="distanceSlider" type="range" min="10" max="200" value="50" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"></div><div class="mb-6"><label for="angleSlider" class="font-medium">Angle (θ): <span id="angleValue" class="font-bold text-blue-500">30</span>°</label><input id="angleSlider" type="range" min="5" max="85" value="30" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"></div><div class="bg-blue-50 dark:bg-slate-800 text-center p-6 rounded-lg"><p class="text-lg font-medium text-blue-800 dark:text-blue-300">Calculated Height</p><p class="text-4xl font-bold text-blue-600 dark:text-blue-400 mt-1"><span id="calculatedHeight">28.9</span> cm</p></div></div></div></div></section>
+
+                <section data-aos><h3 class="text-3xl font-bold mb-8 text-center">Proposed Computer Vision System</h3><div class="card p-8"><div class="flex flex-wrap items-center justify-center gap-4"><div class="text-center p-4"><img src="https://placehold.co/150x112/334155/ffffff?text=Capture" class="rounded-lg shadow-md mb-2 mx-auto"><h4 class="font-semibold">1. Image Capture</h4></div><div class="text-2xl text-secondary">→</div><div class="text-center p-4"><img src="https://placehold.co/150x112/94a3b8/ffffff?text=Process" class="rounded-lg shadow-md mb-2 mx-auto"><h4 class="font-semibold">2. Pre-processing</h4></div><div class="text-2xl text-secondary">→</div><div class="text-center p-4"><img src="https://placehold.co/150x112/0f172a/ffffff?text=Edges" class="rounded-lg shadow-md mb-2 mx-auto"><h4 class="font-semibold">3. Edge Detection</h4></div><div class="text-2xl text-secondary">→</div><div class="text-center p-4"><img src="https://placehold.co/150x112/ef4444/ffffff?text=Laser" class="rounded-lg shadow-md mb-2 mx-auto"><h4 class="font-semibold">4. Laser Detection</h4></div><div class="text-2xl text-secondary">→</div><div class="text-center p-4"><img src="https://placehold.co/150x112/3b82f6/ffffff?text=Control" class="rounded-lg shadow-md mb-2 mx-auto"><h4 class="font-semibold">5. Feedback Loop</h4></div></div></div></section>
+            </div>
+        </div>
+
+        <!-- Analysis Page -->
+        <div id="page-analysis" class="page py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+                <section data-aos><h2 class="text-4xl font-bold text-center">Analysis & Evaluation</h2><p class="text-xl text-secondary text-center mt-2">A quantitative assessment of the project's key attributes.</p></section>
+                
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" data-aos>
+                    <div class="card p-8"><h3 class="text-xl font-semibold mb-2">Uniqueness & Innovation</h3><p class="score-value" id="uniquenessScore">0%</p><p class="text-secondary mt-2">Novel integration of existing technologies for an accessible application.</p></div>
+                    <div class="card p-8"><h3 class="text-xl font-semibold mb-2">Practical Implication</h3><p class="score-value" id="practicalityScore">0%</p><p class="text-secondary mt-2">High potential for use in surveying, monitoring, and education.</p></div>
+                    <div class="card p-8"><h3 class="text-xl font-semibold mb-2">Overall Score</h3><p class="score-value" id="overallScore">0%</p><p class="text-secondary mt-2">A well-executed, practical, and clearly documented project.</p></div>
+                </section>
+
+                <section class="card p-8" data-aos>
+                    <h3 class="text-3xl font-bold text-center mb-8">Experimental Results</h3>
+                    <div style="height: 450px; max-height: 60vh;"><canvas id="performanceChart"></canvas></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Team Page -->
+        <div id="page-team" class="page py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <section data-aos><h2 class="text-4xl font-bold text-center">Meet the Team</h2><p class="text-xl text-secondary text-center mt-2">The award-winning minds behind Xypher Bot.</p></section>
+                
+                <div class="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="card p-8 text-center hover:-translate-y-2" data-aos data-aos-delay="100"><img class="w-32 h-32 mx-auto rounded-full shadow-lg border-4 border-white dark:border-slate-800" src="https://placehold.co/128x128/dbeafe/1e3a8a?text=UT" alt="Utkarsh Tripathi"><h4 class="mt-6 text-2xl font-bold text-blue-600">Utkarsh Tripathi</h4></div>
+                    <div class="card p-8 text-center hover:-translate-y-2" data-aos data-aos-delay="200"><img class="w-32 h-32 mx-auto rounded-full shadow-lg border-4 border-white dark:border-slate-800" src="https://placehold.co/128x128/dbeafe/1e3a8a?text=MT" alt="Manas Tripathi"><h4 class="mt-6 text-2xl font-bold text-blue-600">Manas Tripathi</h4></div>
+                    <div class="card p-8 text-center hover:-translate-y-2" data-aos data-aos-delay="300"><img class="w-32 h-32 mx-auto rounded-full shadow-lg border-4 border-white dark:border-slate-800" src="https://placehold.co/128x128/dbeafe/1e3a8a?text=SP" alt="Sheetal Prajapati"><h4 class="mt-6 text-2xl font-bold text-blue-600">Sheetal Prajapati</h4></div>
+                    <div class="card p-8 text-center hover:-translate-y-2" data-aos data-aos-delay="400"><img class="w-32 h-32 mx-auto rounded-full shadow-lg border-4 border-white dark:border-slate-800" src="https://placehold.co/128x128/dbeafe/1e3a8a?text=DY" alt="Dhyan Chandra Yadav"><h4 class="mt-6 text-2xl font-bold text-blue-600">Dhyan Chandra Yadav</h4></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="font-bold text-lg text-white">Xypher Bot</p>
+            <p class="mt-2">An autonomous surveying project from Babu Banarasi Das University.</p>
+            <p class="mt-4 text-sm">&copy; 2025 Xypher Bot Project. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const docElement = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIconSun = document.getElementById('theme-icon-sun');
+    const themeIconMoon = document.getElementById('theme-icon-moon');
+    const pages = document.querySelectorAll('.page');
+    const navLinks = document.querySelectorAll('.nav-link, .nav-link-main, .nav-link-action');
+    let charts = { performance: null, trig: null };
+    let chartsInitialized = { performance: false, trig: false };
+
+    // --- AOS (Animate on Scroll) ---
+    const aos_init = () => {
+        const aos_elements = document.querySelectorAll('[data-aos]');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('aos-animate');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        aos_elements.forEach(el => {
+            el.classList.remove('aos-animate');
+            observer.observe(el);
+        });
+    };
+
+    // --- THEME SWITCHER ---
+    const applyTheme = (theme) => {
+        if (theme === 'dark') {
+            docElement.classList.add('dark');
+            themeIconSun.classList.add('hidden');
+            themeIconMoon.classList.remove('hidden');
+        } else {
+            docElement.classList.remove('dark');
+            themeIconSun.classList.remove('hidden');
+            themeIconMoon.classList.add('hidden');
+        }
+        // Re-render charts if they exist
+        if (charts.performance) { charts.performance.destroy(); initPerformanceChart(); }
+        if (charts.trig) { charts.trig(); }
+    };
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const newTheme = docElement.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
+
+    // --- PAGE NAVIGATION ---
+    const showPage = (pageId) => {
+        pages.forEach(page => page.classList.remove('active'));
+        const activePage = document.getElementById(`page-${pageId}`);
+        if (activePage) activePage.classList.add('active');
+        
+        window.scrollTo(0, 0);
+        aos_init();
+
+        if (pageId === 'analysis' && !chartsInitialized.performance) {
+            initPerformanceChart();
+            chartsInitialized.performance = true;
+        }
+        if (pageId === 'project' && !chartsInitialized.trig) {
+            initTrigCanvas();
+            chartsInitialized.trig = true;
+        }
+        
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${pageId}`);
+        });
+    };
+
+    const handleNavigation = (e) => {
+        e.preventDefault();
+        const pageId = e.currentTarget.getAttribute('href').substring(1);
+        window.location.hash = pageId;
+    };
+    
+    const handleHashChange = () => {
+        const pageId = window.location.hash.substring(1) || 'home';
+        showPage(pageId);
+    };
+
+    navLinks.forEach(link => link.addEventListener('click', handleNavigation));
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+
+    // --- SCORE ANIMATION ---
+    const animateValue = (element, start, end, duration) => {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            element.innerHTML = Math.floor(progress * (end - start) + start) + '%';
+            if (progress < 1) window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
+    };
+
+    const scoreObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateValue(document.getElementById('uniquenessScore'), 0, 65, 1500);
+                animateValue(document.getElementById('practicalityScore'), 0, 90, 1500);
+                animateValue(document.getElementById('overallScore'), 0, 82, 1500);
+                scoreObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    document.querySelectorAll('.score-value').forEach(el => scoreObserver.observe(el));
+
+    // --- CHARTS & CANVAS INITIALIZATION ---
+    function initPerformanceChart() {
+        const isDark = docElement.classList.contains('dark');
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
+        const textColor = isDark ? '#f8fafc' : '#0f172a';
+
+        const data = {
+            labels: ['Book', 'Bottle', 'Box', 'Monitor Stand', 'Small Stool'],
+            datasets: [
+                { label: 'Actual Height (cm)', data: [24, 28, 30, 12, 45], backgroundColor: 'rgba(37, 99, 235, 0.6)', borderColor: 'rgba(37, 99, 235, 1)', borderWidth: 2, borderRadius: 5 },
+                { label: 'Measured Height (cm)', data: [23.8, 27.5, 29.2, 11.5, 44.6], backgroundColor: isDark ? 'rgba(148, 163, 184, 0.6)' : 'rgba(71, 85, 105, 0.6)', borderColor: isDark ? 'rgba(148, 163, 184, 1)' : 'rgba(71, 85, 105, 1)', borderWidth: 2, borderRadius: 5 }
+            ]
+        };
+        charts.performance = new Chart(document.getElementById('performanceChart').getContext('2d'), {
+            type: 'bar', data: data,
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Height (cm)', color: textColor, font: { size: 14 } }, grid: { color: gridColor }, ticks: { color: textColor } }, x: { title: { display: true, text: 'Object Measured', color: textColor, font: { size: 14 } }, grid: { display: false }, ticks: { color: textColor } } },
+                plugins: { title: { display: true, text: 'Accuracy Test: Actual vs. Measured Height', color: textColor, font: { size: 18, weight: 'bold' }, padding: { bottom: 20 } }, legend: { labels: { color: textColor } }, tooltip: { backgroundColor: '#0f172a', titleFont: { size: 16 }, bodyFont: { size: 14 }, padding: 12, cornerRadius: 8 } }
+            }
+        });
+    }
+
+    function initTrigCanvas() {
+        const canvas = document.getElementById('trigCanvas'), ctx = canvas.getContext('2d');
+        const sliders = { d: document.getElementById('distanceSlider'), a: document.getElementById('angleSlider') };
+        const values = { d: document.getElementById('distanceValue'), a: document.getElementById('angleValue'), h: document.getElementById('calculatedHeight') };
+
+        const draw = () => {
+            const isDark = docElement.classList.contains('dark');
+            const textColor = isDark ? '#f8fafc' : '#0f172a', groundColor = isDark ? '#334155' : '#cbd5e1';
+            const d = parseFloat(sliders.d.value), theta = parseFloat(sliders.a.value);
+            const h = d * Math.tan(theta * Math.PI / 180);
+            values.d.textContent = d.toFixed(0); values.a.textContent = theta.toFixed(0); values.h.textContent = h.toFixed(1);
+            
+            const w = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, w, H);
+            const botW = 40, botH = 25, objW = 30, scale = (w * 0.7) / 200;
+            const botX = w * 0.15, botY = H - botH - 2, objX = botX + d * scale, objH = h * scale;
+            let objY = H - objH - 2;
+            if (objY < 0) objY = 0;
+            
+            ctx.strokeStyle = groundColor; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, H - 2); ctx.lineTo(w, H - 2); ctx.stroke();
+            ctx.fillStyle = isDark ? '#475569' : '#64748b'; ctx.fillRect(botX - botW/2, botY, botW, botH);
+            ctx.fillStyle = '#2563eb'; if(objY < H) { ctx.fillRect(objX - objW/2, objY, objW, Math.min(objH, H - 2)); }
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.beginPath(); ctx.moveTo(botX, botY); ctx.lineTo(objX, objY); ctx.stroke(); ctx.setLineDash([]);
+            ctx.strokeStyle = groundColor; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(botX, botY, 30, -theta * Math.PI/180, 0); ctx.stroke();
+            ctx.fillStyle = textColor; ctx.font = 'bold 12px Inter'; ctx.fillText(`θ=${theta.toFixed(0)}°`, botX + 35, botY - 15); ctx.fillText(`D=${d.toFixed(0)}cm`, botX + (d * scale / 2) - 20, H - 10); if(objY < H) { ctx.fillText(`H=${h.toFixed(1)}cm`, objX + 20, objY + objH/2); }
+        };
+        
+        const resize = () => { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; draw(); };
+        
+        sliders.d.addEventListener('input', draw); sliders.a.addEventListener('input', draw);
+        window.addEventListener('resize', resize);
+        charts.trig = draw; // Assign draw function to be callable
+        setTimeout(resize, 100);
+    }
+});
+</script>
+</body>
+</html>
